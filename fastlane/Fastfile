@@ -1,0 +1,48 @@
+# Fastfile for TradeFly iOS automation
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build the app for testing"
+  lane :build do
+    build_app(
+      scheme: "TradeFly",
+      destination: "generic/platform=iOS Simulator",
+      skip_archive: true,
+      skip_codesigning: true
+    )
+  end
+
+  desc "Run all tests"
+  lane :test do
+    scan(
+      scheme: "TradeFly",
+      device: "iPhone 17 Pro",
+      code_coverage: true
+    )
+  end
+
+  desc "Take screenshots"
+  lane :screenshots do
+    snapshot
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    increment_build_number
+    build_app(scheme: "TradeFly")
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Deploy to App Store"
+  lane :release do
+    increment_build_number
+    build_app(scheme: "TradeFly")
+    upload_to_app_store(
+      submit_for_review: false,
+      automatic_release: false
+    )
+  end
+end

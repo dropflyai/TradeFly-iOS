@@ -14,7 +14,7 @@ class SignalService: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private let supabase = SupabaseService.shared
-    private var useSupabase = false // Toggle this when Supabase is configured
+    private var useSupabase = true // Using Supabase for live data
 
     init() {
         // Load sample data initially

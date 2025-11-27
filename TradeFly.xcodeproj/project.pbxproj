@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E75A3E842ED7F57E007239E7 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E832ED7F57E007239E7 /* Auth */; };
+		E75A3E862ED7F57E007239E7 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E852ED7F57E007239E7 /* Functions */; };
+		E75A3E882ED7F57E007239E7 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E872ED7F57E007239E7 /* PostgREST */; };
+		E75A3E8A2ED7F57E007239E7 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E892ED7F57E007239E7 /* Realtime */; };
+		E75A3E8C2ED7F57E007239E7 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E8B2ED7F57E007239E7 /* Storage */; };
+		E75A3E8E2ED7F57E007239E7 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E8D2ED7F57E007239E7 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E75A3E3F2ED7DA52007239E7 /* TradeFly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TradeFly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +32,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E75A3E882ED7F57E007239E7 /* PostgREST in Frameworks */,
+				E75A3E862ED7F57E007239E7 /* Functions in Frameworks */,
+				E75A3E8E2ED7F57E007239E7 /* Supabase in Frameworks */,
+				E75A3E842ED7F57E007239E7 /* Auth in Frameworks */,
+				E75A3E8C2ED7F57E007239E7 /* Storage in Frameworks */,
+				E75A3E8A2ED7F57E007239E7 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +48,7 @@
 			isa = PBXGroup;
 			children = (
 				E75A3E412ED7DA52007239E7 /* TradeFly */,
+				E75A3E822ED7F57E007239E7 /* Frameworks */,
 				E75A3E402ED7DA52007239E7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +59,13 @@
 				E75A3E3F2ED7DA52007239E7 /* TradeFly.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E75A3E822ED7F57E007239E7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +88,12 @@
 			);
 			name = TradeFly;
 			packageProductDependencies = (
+				E75A3E832ED7F57E007239E7 /* Auth */,
+				E75A3E852ED7F57E007239E7 /* Functions */,
+				E75A3E872ED7F57E007239E7 /* PostgREST */,
+				E75A3E892ED7F57E007239E7 /* Realtime */,
+				E75A3E8B2ED7F57E007239E7 /* Storage */,
+				E75A3E8D2ED7F57E007239E7 /* Supabase */,
 			);
 			productName = TradeFly;
 			productReference = E75A3E3F2ED7DA52007239E7 /* TradeFly.app */;
@@ -94,6 +123,9 @@
 			);
 			mainGroup = E75A3E362ED7DA52007239E7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E75A3E402ED7DA52007239E7 /* Products */;
 			projectDirPath = "";
@@ -332,6 +364,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E75A3E832ED7F57E007239E7 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		E75A3E852ED7F57E007239E7 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		E75A3E872ED7F57E007239E7 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		E75A3E892ED7F57E007239E7 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		E75A3E8B2ED7F57E007239E7 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		E75A3E8D2ED7F57E007239E7 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E75A3E812ED7EB4F007239E7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E75A3E372ED7DA52007239E7 /* Project object */;
 }

@@ -1,0 +1,39 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project TradeFly.xcodeproj -scheme TradeFly -destination "platform=iOS Simulator,name=iPhone 15 Pro" clean build
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  xctest-dynamic-overlay: https://github.com/pointfreeco/xctest-dynamic-overlay @ 1.7.0
+  Supabase: https://github.com/supabase/supabase-swift @ 2.37.0
+  swift-clocks: https://github.com/pointfreeco/swift-clocks @ 1.0.6
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.5.1
+  swift-concurrency-extras: https://github.com/pointfreeco/swift-concurrency-extras @ 1.3.2
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 4.2.0
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.5.0
+
+2025-11-26 18:35:09.748 xcodebuild[83440:5090371] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+2025-11-26 18:36:09.830 xcodebuild[83440:5090371] Writing error result bundle to /var/folders/n3/gr9nn27s7xjct8qdd5wv22x80000gn/T/ResultBundle_2025-26-11_18-36-0009.xcresult
+xcodebuild: error: Unable to find a device matching the provided destination specifier:
+		{ platform:iOS Simulator, OS:latest, name:iPhone 15 Pro }
+
+	The requested device could not be found because no available devices matched the request.
+
+	Available destinations for the "TradeFly" scheme:
+		{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device }
+		{ platform:iOS Simulator, id:dvtdevice-DVTiOSDeviceSimulatorPlaceholder-iphonesimulator:placeholder, name:Any iOS Simulator Device }
+		{ platform:iOS Simulator, arch:arm64, id:0E2A7182-DD99-490C-B19A-17FA884FC673, OS:26.1, name:iPad (A16) }
+		{ platform:iOS Simulator, arch:arm64, id:1D879F81-4D86-4A03-B1C7-50A4EF701226, OS:26.1, name:iPad Air 11-inch (M3) }
+		{ platform:iOS Simulator, arch:arm64, id:6018FDF2-680E-4E4C-AE66-39DB0DD20995, OS:26.1, name:iPad Air 13-inch (M3) }
+		{ platform:iOS Simulator, arch:arm64, id:3982FD98-B56C-47D4-966D-B46090C68C25, OS:26.1, name:iPad Pro 11-inch (M5) }
+		{ platform:iOS Simulator, arch:arm64, id:95072891-01D4-4A84-8A22-5A31C697E5E3, OS:26.1, name:iPad Pro 13-inch (M5) }
+		{ platform:iOS Simulator, arch:arm64, id:15EE3458-D220-4B9E-A669-A8925E9E62E1, OS:26.1, name:iPad mini (A17 Pro) }
+		{ platform:iOS Simulator, arch:arm64, id:252D2EB1-1EC2-43BD-9D6E-082440E6C034, OS:26.1, name:iPhone 16e }
+		{ platform:iOS Simulator, arch:arm64, id:5611448B-827D-49EF-90DF-D5291FC74002, OS:26.1, name:iPhone 17 }
+		{ platform:iOS Simulator, arch:arm64, id:523A8F96-B0A3-42AC-8DC9-B2CBB1E145B0, OS:26.1, name:iPhone 17 Pro }
+		{ platform:iOS Simulator, arch:arm64, id:CDCCF3D5-EB44-4FDF-ADD6-8D1DD8145D39, OS:26.1, name:iPhone 17 Pro Max }
+		{ platform:iOS Simulator, arch:arm64, id:B4B3F560-5695-45ED-925D-0826F8229136, OS:26.1, name:iPhone Air }
+
+	Ineligible destinations for the "TradeFly" scheme:
+		{ platform:macOS, arch:undefined_arch, variant:Designed for [iPad,iPhone], id:00006031-001448413A68001C, name:My Mac, error:Xcode doesn’t support My Mac’s macOS 15.6.1 (24G90).  }

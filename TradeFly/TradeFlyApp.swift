@@ -12,17 +12,31 @@ struct TradeFlyApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var signalService = SignalService()
     @StateObject private var userSettings = UserSettings()
+    @StateObject private var supabase = SupabaseService.shared
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(appState)
-                .environmentObject(signalService)
+            if !supabase.isAuthenticated {
+                // Show auth screen if not logged in
+                AuthView()
+                    .environmentObject(supabase)
+            } else if appState.isOnboarding {
+                // Show onboarding if first time
+                OnboardingFlow(onComplete: {
+                    appState.completeOnboarding()
+                })
                 .environmentObject(userSettings)
-                .onAppear {
-                    setupNotifications()
-                    loadUserData()
-                }
+            } else {
+                // Show main app
+                ContentView()
+                    .environmentObject(appState)
+                    .environmentObject(signalService)
+                    .environmentObject(userSettings)
+                    .onAppear {
+                        setupNotifications()
+                        loadUserData()
+                    }
+            }
         }
     }
 
