@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct TradeFlyApp: App {
@@ -22,10 +23,9 @@ struct TradeFlyApp: App {
                     .environmentObject(supabase)
             } else if appState.isOnboarding {
                 // Show onboarding if first time
-                OnboardingFlow(onComplete: {
-                    appState.completeOnboarding()
-                })
-                .environmentObject(userSettings)
+                OnboardingFlow()
+                    .environmentObject(appState)
+                    .environmentObject(userSettings)
             } else {
                 // Show main app
                 ContentView()

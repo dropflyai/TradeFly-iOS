@@ -14,8 +14,9 @@ class SupabaseService: ObservableObject {
     private let supabaseKey = SupabaseConfig.anonKey
 
     private var client: SupabaseClient
+    private var signalsCancellable: AnyCancellable?
 
-    @Published var currentUser: Auth.User?
+    @Published var currentUser: User?
     @Published var isAuthenticated = false
 
     init() {
@@ -96,11 +97,12 @@ class SupabaseService: ObservableObject {
             id: userId,
             capital: 10000,
             daily_profit_goal: 300,
-            experience_level: "beginner",
-            trading_style: "moderate"
+            experience_level: "Beginner",
+            trading_style: "Moderate"
         )
 
-        try await client.from("user_profiles")
+        try await client.database
+            .from("user_profiles")
             .insert(profile)
             .execute()
     }
@@ -117,7 +119,8 @@ class SupabaseService: ObservableObject {
             let trading_style: String
         }
 
-        let response: UserProfileResponse = try await client.from("user_profiles")
+        let response: UserProfileResponse = try await client.database
+            .from("user_profiles")
             .select()
             .eq("id", value: userId.uuidString)
             .single()
@@ -128,7 +131,7 @@ class SupabaseService: ObservableObject {
         settings.capital = response.capital
         settings.dailyProfitGoal = response.daily_profit_goal
         settings.experienceLevel = ExperienceLevel(rawValue: response.experience_level) ?? .beginner
-        settings.tradingStyle = TradingStyle(rawValue: response.trading_style.capitalized) ?? .moderate
+        settings.tradingStyle = TradingStyle(rawValue: response.trading_style) ?? .moderate
 
         return settings
     }
@@ -149,10 +152,11 @@ class SupabaseService: ObservableObject {
             capital: settings.capital,
             daily_profit_goal: settings.dailyProfitGoal,
             experience_level: settings.experienceLevel.rawValue,
-            trading_style: settings.tradingStyle.rawValue.lowercased()
+            trading_style: settings.tradingStyle.rawValue
         )
 
-        try await client.from("user_profiles")
+        try await client.database
+            .from("user_profiles")
             .update(update)
             .eq("id", value: userId.uuidString)
             .execute()
@@ -160,10 +164,103 @@ class SupabaseService: ObservableObject {
 
     // MARK: - Trading Signals
 
+    private struct SignalResponse: Decodable {
+        let id: String
+        let ticker: String
+        let signal_type: String
+        let quality: String
+        let entry_price: Double
+        let stop_loss: Double
+        let take_profit_1: Double
+        let take_profit_2: Double?
+        let take_profit_3: Double?
+        let current_price: Double
+        let vwap: Double?
+        let ema_9: Double?
+        let ema_20: Double?
+        let volume: Int?
+        let avg_volume: Int?
+        let relative_volume: Double?
+        let market_context: String?
+        let catalyst: String?
+        let timeframe: String
+        let ai_reasoning: String
+        let confidence_score: Int?
+        let risk_factors: [String]?
+        let created_at: String
+    }
+
     func fetchActiveSignals() async throws -> [TradingSignal] {
-        // For now, return sample data
-        // In production, you'd fetch from Supabase and convert to TradingSignal
-        return TradingSignal.samples
+        let response: [SignalResponse] = try await client.database
+            .from("trading_signals")
+            .select()
+            .eq("is_active", value: true)
+            .order("created_at", ascending: false)
+            .limit(20)
+            .execute()
+            .value
+
+        return response.map { convertToTradingSignal($0) }
+    }
+
+    private func convertToTradingSignal(_ response: SignalResponse) -> TradingSignal {
+        let currentPrice = response.current_price
+        let entryPrice = response.entry_price
+        let target = response.take_profit_1
+        let targetPercent = ((target - entryPrice) / entryPrice) * 100
+
+        return TradingSignal(
+            id: response.id,
+            ticker: response.ticker,
+            signalType: SignalType(rawValue: response.signal_type) ?? .orbBreakoutLong,
+            quality: Quality(rawValue: response.quality) ?? .medium,
+            timestamp: ISO8601DateFormatter().date(from: response.created_at) ?? Date(),
+            price: currentPrice,
+            vwap: response.vwap ?? currentPrice,
+            ema9: response.ema_9 ?? currentPrice,
+            ema20: response.ema_20 ?? currentPrice,
+            ema50: currentPrice, // Not in backend response, use current price
+            volume: response.volume ?? 0,
+            context: response.market_context ?? "",
+            idea: response.signal_type.contains("LONG") ? .call : .put,
+            entry: PriceRange(low: entryPrice * 0.995, high: entryPrice * 1.005),
+            stopLoss: response.stop_loss,
+            target: target,
+            targetPercentage: targetPercent,
+            timeframe: response.timeframe
+        )
+    }
+
+    // MARK: - Real-time Subscriptions
+
+    func subscribeToSignals(onNewSignal: @escaping (TradingSignal) -> Void) {
+        Task {
+            let channel = await client.channel("trading_signals")
+
+            let changes = channel.postgresChange(
+                InsertAction.self,
+                schema: "public",
+                table: "trading_signals",
+                filter: "is_active=eq.true"
+            )
+
+            await channel.subscribe()
+
+            for await change in changes {
+                // Parse the new signal and call the callback
+                if let newSignal = parseSignalFromChange(change) {
+                    await MainActor.run {
+                        onNewSignal(newSignal)
+                    }
+                }
+            }
+        }
+    }
+
+    private func parseSignalFromChange(_ change: InsertAction) -> TradingSignal? {
+        // Convert the postgres change to a TradingSignal
+        // This would need proper JSON parsing based on the change structure
+        return nil // Placeholder
     }
 
     // MARK: - Trades
@@ -201,15 +298,43 @@ class SupabaseService: ObservableObject {
             notes: trade.notes
         )
 
-        try await client.from("trades")
+        try await client.database
+            .from("trades")
             .insert(tradeInsert)
             .execute()
     }
 
     func fetchUserTrades() async throws -> [Trade] {
-        // For now, return sample data
-        // In production, you'd fetch from Supabase and convert to Trade
-        return Trade.samples
+        guard let userId = currentUser?.id else {
+            throw SupabaseError.notAuthenticated
+        }
+
+        struct TradeResponse: Decodable {
+            let id: String
+            let ticker: String
+            let signal_type: String
+            let entry_price: Double
+            let exit_price: Double?
+            let shares: Int
+            let profit_loss: Double?
+            let profit_loss_percentage: Double?
+            let is_open: Bool
+            let opened_at: String
+            let closed_at: String?
+            let notes: String?
+        }
+
+        let response: [TradeResponse] = try await client.database
+            .from("trades")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .order("opened_at", ascending: false)
+            .execute()
+            .value
+
+        // Convert to Trade objects
+        // This would need the full signal data, so might need a join query
+        return [] // Placeholder - would convert TradeResponse to Trade
     }
 
     // MARK: - Learning Progress
@@ -233,7 +358,8 @@ class SupabaseService: ObservableObject {
             completed_at: ISO8601DateFormatter().string(from: Date())
         )
 
-        try await client.from("learning_progress")
+        try await client.database
+            .from("learning_progress")
             .upsert(progress)
             .execute()
     }
@@ -247,7 +373,8 @@ class SupabaseService: ObservableObject {
             let module_id: String
         }
 
-        let response: [ProgressResponse] = try await client.from("learning_progress")
+        let response: [ProgressResponse] = try await client.database
+            .from("learning_progress")
             .select("module_id")
             .eq("user_id", value: userId.uuidString)
             .eq("completed", value: true)

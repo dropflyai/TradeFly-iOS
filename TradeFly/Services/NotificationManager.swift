@@ -45,6 +45,11 @@ class NotificationManager {
         }
     }
 
+    // Alias for compatibility
+    func sendSignalNotification(signal: TradingSignal) {
+        sendLocalNotification(for: signal)
+    }
+
     func clearBadge() {
         UNUserNotificationCenter.current().setBadgeCount(0)
     }
