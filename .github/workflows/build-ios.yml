@@ -24,40 +24,14 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/c18e97b1-b7ff-4696-a5e3-265f560de54b.mobileprovision
 
-      - name: Build iOS App
-        run: |
-          xcodebuild \
-            -project TradeFly.xcodeproj \
-            -scheme TradeFly \
-            -configuration Release \
-            -archivePath $PWD/build/TradeFly.xcarchive \
-            -allowProvisioningUpdates \
-            archive
-
-      - name: Export IPA
-        run: |
-          xcodebuild \
-            -exportArchive \
-            -archivePath $PWD/build/TradeFly.xcarchive \
-            -exportOptionsPlist exportOptions.plist \
-            -exportPath $PWD/build
-
-      - name: Upload IPA to GitHub Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          name: TradeFly-iOS
-          path: build/*.ipa
-          retention-days: 30
+          ruby-version: '3.0'
+          bundler-cache: true
 
-      - name: Upload to TestFlight
+      - name: Build and Upload to TestFlight
         env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-        run: |
-          cd build
-          xcrun altool --upload-app \
-            -f *.ipa \
-            -t ios \
-            -u "$APPLE_ID" \
-            -p "$APP_SPECIFIC_PASSWORD" \
-            --verbose
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+        run: bundle exec fastlane beta
