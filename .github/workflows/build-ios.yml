@@ -34,10 +34,6 @@ jobs:
             -configuration Release \
             -archivePath $PWD/build/TradeFly.xcarchive \
             -allowProvisioningUpdates \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution: Erik Scott (G46B7YC46C)" \
-            DEVELOPMENT_TEAM=G46B7YC46C \
-            PROVISIONING_PROFILE_SPECIFIER="TradeFly App Store" \
             archive
 
       - name: Export IPA
