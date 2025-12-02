@@ -29,11 +29,8 @@ jobs:
           xcodebuild \
             -project TradeFly.xcodeproj \
             -scheme TradeFly \
-            -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath $PWD/build/TradeFly.xcarchive \
-            -allowProvisioningUpdates \
             archive
 
       - name: Export IPA
