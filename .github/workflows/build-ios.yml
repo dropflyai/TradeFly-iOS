@@ -22,7 +22,7 @@ jobs:
       - name: Download Provisioning Profile
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/c18e97b1-b7ff-4696-a5e3-265f560de54b.mobileprovision
 
       - name: Build iOS App
         run: |
