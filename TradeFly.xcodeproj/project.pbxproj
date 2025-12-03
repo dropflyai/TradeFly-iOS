@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3E1D492F9F862282E21BDB0E /* MarketsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C04B43BD341383160CBE72 /* MarketsView.swift */; };
+		83A148C7847B75A456F31414 /* AdvancedChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8774443B89F78530DB1C362C /* AdvancedChartView.swift */; };
 		E74EE5ED2EDF814E009136F6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = E75A3E822ED7EB4F007239E7 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8774443B89F78530DB1C362C /* AdvancedChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AdvancedChartView.swift; path = TradeFly/Views/AdvancedChartView.swift; sourceTree = SOURCE_ROOT; };
+		E2C04B43BD341383160CBE72 /* MarketsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MarketsView.swift; path = TradeFly/Views/MarketsView.swift; sourceTree = SOURCE_ROOT; };
 		E75A3E3F2ED7DA52007239E7 /* TradeFly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TradeFly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E75A3E412ED7DA52007239E7 /* TradeFly */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TradeFly;
-			sourceTree = "<group>";
-		};
+		E75A3E412ED7DA52007239E7 /* TradeFly */ = {isa = PBXFileSystemSynchronizedRootGroup; path = TradeFly; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,6 +39,8 @@
 			children = (
 				E75A3E412ED7DA52007239E7 /* TradeFly */,
 				E75A3E402ED7DA52007239E7 /* Products */,
+				8774443B89F78530DB1C362C /* AdvancedChartView.swift */,
+				E2C04B43BD341383160CBE72 /* MarketsView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -128,6 +130,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				83A148C7847B75A456F31414 /* AdvancedChartView.swift in Sources */,
+				3E1D492F9F862282E21BDB0E /* MarketsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

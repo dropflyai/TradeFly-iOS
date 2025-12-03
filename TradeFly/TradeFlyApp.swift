@@ -58,6 +58,7 @@ class AppState: ObservableObject {
     enum Tab {
         case home
         case signals
+        case markets
         case learn
         case trades
         case settings

@@ -39,6 +39,12 @@ struct MainTabView: View {
                 .tag(AppState.Tab.signals)
                 .badge(signalService.activeSignals.count)
 
+            MarketsView()
+                .tabItem {
+                    Label("Markets", systemImage: "chart.bar")
+                }
+                .tag(AppState.Tab.markets)
+
             LearnView()
                 .tabItem {
                     Label("Learn", systemImage: "book.fill")

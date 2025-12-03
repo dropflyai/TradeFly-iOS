@@ -6,14 +6,29 @@
 import SwiftUI
 
 struct TradesView: View {
-    @State private var trades: [Trade] = Trade.samples
+    @StateObject private var supabaseService = SupabaseService.shared
+    @State private var trades: [Trade] = []
     @State private var selectedFilter: TradeFilter = .all
+    @State private var isLoading = true
+    @State private var errorMessage: String?
 
     var filteredTrades: [Trade] {
         switch selectedFilter {
         case .all: return trades
         case .open: return trades.filter { $0.isOpen }
         case .closed: return trades.filter { !$0.isOpen }
+        }
+    }
+
+    func loadTrades() async {
+        isLoading = true
+        errorMessage = nil
+        do {
+            trades = try await supabaseService.fetchUserTrades()
+            isLoading = false
+        } catch {
+            errorMessage = "Failed to load trades: \(error.localizedDescription)"
+            isLoading = false
         }
     }
 
@@ -29,8 +44,31 @@ struct TradesView: View {
                 TradeStatisticsCard(trades: trades)
                     .padding(.horizontal)
 
-                // Trades List
-                if filteredTrades.isEmpty {
+                // Content
+                if isLoading {
+                    Spacer()
+                    ProgressView("Loading trades...")
+                    Spacer()
+                } else if let error = errorMessage {
+                    Spacer()
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 50))
+                            .foregroundColor(.orange)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                        Button("Retry") {
+                            Task {
+                                await loadTrades()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    Spacer()
+                } else if filteredTrades.isEmpty {
                     EmptyTradesView()
                 } else {
                     List(filteredTrades) { trade in
@@ -40,6 +78,12 @@ struct TradesView: View {
                 }
             }
             .navigationTitle("Trade Journal")
+            .task {
+                await loadTrades()
+            }
+            .refreshable {
+                await loadTrades()
+            }
         }
     }
 }
