@@ -53,11 +53,10 @@ class SupabaseService: ObservableObject {
             password: password
         )
 
-        // Create user profile
-        let user = response.user
-        try await createUserProfile(userId: user.id)
+        // Profile will be auto-created by database trigger
+        // No need to manually create it here
         await MainActor.run {
-            self.currentUser = user
+            self.currentUser = response.user
             self.isAuthenticated = true
         }
     }
