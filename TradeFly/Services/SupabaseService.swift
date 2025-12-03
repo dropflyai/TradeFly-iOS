@@ -100,7 +100,7 @@ class SupabaseService: ObservableObject {
             trading_style: "Moderate"
         )
 
-        try await client.database
+        try await client
             .from("user_profiles")
             .insert(profile)
             .execute()
@@ -118,7 +118,7 @@ class SupabaseService: ObservableObject {
             let trading_style: String
         }
 
-        let response: UserProfileResponse = try await client.database
+        let response: UserProfileResponse = try await client
             .from("user_profiles")
             .select()
             .eq("id", value: userId.uuidString)
@@ -154,7 +154,7 @@ class SupabaseService: ObservableObject {
             trading_style: settings.tradingStyle.rawValue
         )
 
-        try await client.database
+        try await client
             .from("user_profiles")
             .update(update)
             .eq("id", value: userId.uuidString)
@@ -190,7 +190,7 @@ class SupabaseService: ObservableObject {
     }
 
     func fetchActiveSignals() async throws -> [TradingSignal] {
-        let response: [SignalResponse] = try await client.database
+        let response: [SignalResponse] = try await client
             .from("trading_signals")
             .select()
             .eq("is_active", value: true)
@@ -234,7 +234,7 @@ class SupabaseService: ObservableObject {
 
     func subscribeToSignals(onNewSignal: @escaping (TradingSignal) -> Void) {
         Task {
-            let channel = await client.channel("trading_signals")
+            let channel = client.channel("trading_signals")
 
             let changes = channel.postgresChange(
                 InsertAction.self,
@@ -243,7 +243,7 @@ class SupabaseService: ObservableObject {
                 filter: "is_active=eq.true"
             )
 
-            await channel.subscribe()
+            try? await channel.subscribeWithError()
 
             for await change in changes {
                 // Parse the new signal and call the callback
@@ -297,7 +297,7 @@ class SupabaseService: ObservableObject {
             notes: trade.notes
         )
 
-        try await client.database
+        try await client
             .from("trades")
             .insert(tradeInsert)
             .execute()
@@ -323,7 +323,7 @@ class SupabaseService: ObservableObject {
             let notes: String?
         }
 
-        let response: [TradeResponse] = try await client.database
+        let _: [TradeResponse] = try await client
             .from("trades")
             .select()
             .eq("user_id", value: userId.uuidString)
@@ -357,7 +357,7 @@ class SupabaseService: ObservableObject {
             completed_at: ISO8601DateFormatter().string(from: Date())
         )
 
-        try await client.database
+        try await client
             .from("learning_progress")
             .upsert(progress)
             .execute()
@@ -372,7 +372,7 @@ class SupabaseService: ObservableObject {
             let module_id: String
         }
 
-        let response: [ProgressResponse] = try await client.database
+        let response: [ProgressResponse] = try await client
             .from("learning_progress")
             .select("module_id")
             .eq("user_id", value: userId.uuidString)
