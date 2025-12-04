@@ -18,7 +18,8 @@ class APIClient {
         // For now, return sample data after delay to simulate network
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            completion(.success(TradingSignal.samples))
+            // NO SAMPLE DATA - return empty array
+            completion(.success([]))
         }
     }
 

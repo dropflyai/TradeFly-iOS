@@ -43,11 +43,12 @@ enum TradeStatus: String, Codable {
     case targetHit = "Target Hit"
 }
 
-// MARK: - Sample Data
+// MARK: - Preview Sample (for SwiftUI previews only)
+#if DEBUG
 extension Trade {
-    static let sample = Trade(
+    static let previewSample = Trade(
         id: UUID().uuidString,
-        signal: TradingSignal.sample,
+        signal: TradingSignal.previewSample,
         entryPrice: 188.20,
         exitPrice: 210.64,
         positionSize: 1000,
@@ -60,11 +61,11 @@ extension Trade {
         notes: "Perfect setup, followed plan"
     )
 
-    static let samples: [Trade] = [
-        sample,
+    static let previewSamples: [Trade] = [
+        previewSample,
         Trade(
             id: UUID().uuidString,
-            signal: TradingSignal.samples[1],
+            signal: TradingSignal.previewSample,
             entryPrice: 175.80,
             exitPrice: 193.38,
             positionSize: 1200,
@@ -78,7 +79,7 @@ extension Trade {
         ),
         Trade(
             id: UUID().uuidString,
-            signal: TradingSignal.samples[2],
+            signal: TradingSignal.previewSample,
             entryPrice: 242.10,
             exitPrice: nil,
             positionSize: 1000,
@@ -92,3 +93,4 @@ extension Trade {
         )
     ]
 }
+#endif

@@ -286,6 +286,70 @@ class SupabaseService: ObservableObject {
         return nil // Placeholder
     }
 
+    // MARK: - Analytics & Statistics
+
+    func fetchWeeklyStats() async throws -> WeeklyStats {
+        // Calculate stats from trades table for the past 7 days
+        let sevenDaysAgo = Calendar.current.date(byAdding: .day, value: -7, to: Date())!
+        let isoFormatter = ISO8601DateFormatter()
+        let dateStr = isoFormatter.string(from: sevenDaysAgo)
+
+        let trades: [TradeRecord] = try await client
+            .from("trades")
+            .select()
+            .gte("created_at", value: dateStr)
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+
+        // Calculate win rate and avg gain
+        let totalTrades = trades.count
+        guard totalTrades > 0 else {
+            return WeeklyStats(winRate: 0, avgGain: 0, totalTrades: 0)
+        }
+
+        let winners = trades.filter { trade in
+            guard let exitPrice = trade.exit_price else { return false }
+            return exitPrice > trade.entry_price
+        }
+        let winRate = (Double(winners.count) / Double(totalTrades)) * 100
+
+        let totalGain = trades.compactMap { trade -> Double? in
+            guard let exitPrice = trade.exit_price else { return nil }
+            return ((exitPrice - trade.entry_price) / trade.entry_price) * 100
+        }.reduce(0, +)
+
+        let avgGain = totalGain / Double(totalTrades)
+
+        return WeeklyStats(winRate: winRate, avgGain: avgGain, totalTrades: totalTrades)
+    }
+
+    func fetchSignalTypePerformance(signalType: SignalType) async throws -> SignalTypePerformance {
+        // Fetch historical performance for this signal type
+        let signals: [SignalPerformanceRecord] = try await client
+            .from("signal_performance")
+            .select()
+            .eq("signal_type", value: signalType.rawValue)
+            .execute()
+            .value
+
+        guard !signals.isEmpty else {
+            return SignalTypePerformance(winRate: 0, avgGain: 0, totalSignals: 0)
+        }
+
+        let winners = signals.filter { $0.was_successful }
+        let winRate = (Double(winners.count) / Double(signals.count)) * 100
+
+        let totalGain = signals.reduce(0.0) { $0 + $1.gain_percent }
+        let avgGain = totalGain / Double(signals.count)
+
+        return SignalTypePerformance(
+            winRate: winRate,
+            avgGain: avgGain,
+            totalSignals: signals.count
+        )
+    }
+
     // MARK: - Trades
 
     func saveTrade(_ trade: Trade) async throws {
@@ -406,6 +470,22 @@ class SupabaseService: ObservableObject {
 
         return Set(response.map { $0.module_id })
     }
+}
+
+// MARK: - Supporting Models for Analytics
+
+struct TradeRecord: Codable {
+    let id: String
+    let entry_price: Double
+    let exit_price: Double?
+    let created_at: String
+}
+
+struct SignalPerformanceRecord: Codable {
+    let id: String
+    let signal_type: String
+    let was_successful: Bool
+    let gain_percent: Double
 }
 
 // MARK: - Errors

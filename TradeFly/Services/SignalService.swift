@@ -17,20 +17,25 @@ class SignalService: ObservableObject {
     private var useSupabase = true // Using Supabase for live data
 
     init() {
-        // Load sample data initially
-        loadSampleData()
+        // Start with empty signals - will be populated from Supabase
+        activeSignals = []
 
         // Subscribe to real-time signals if using Supabase
         if useSupabase {
             subscribeToRealTimeSignals()
+            // Fetch initial data immediately
+            Task {
+                await fetchInitialSignals()
+            }
         }
 
         // Start polling for new signals (every 30 seconds)
         startPolling()
     }
 
-    func loadSampleData() {
-        activeSignals = TradingSignal.samples
+    @MainActor
+    private func fetchInitialSignals() async {
+        fetchSignalsFromSupabase()
     }
 
     func startPolling() {
@@ -45,10 +50,8 @@ class SignalService: ObservableObject {
     func fetchSignals() {
         if useSupabase {
             fetchSignalsFromSupabase()
-        } else {
-            // Use sample data for now
-            loadSampleData()
         }
+        // NO FALLBACK TO SAMPLE DATA - only use real data from Supabase
     }
 
     private func fetchSignalsFromSupabase() {
@@ -66,8 +69,8 @@ class SignalService: ObservableObject {
                 await MainActor.run {
                     self.error = error.localizedDescription
                     self.isLoading = false
-                    // Fallback to sample data
-                    self.loadSampleData()
+                    // NO FALLBACK - keep empty or existing signals
+                    print("Failed to fetch signals from Supabase: \(error)")
                 }
             }
         }

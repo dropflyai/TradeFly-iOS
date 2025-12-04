@@ -254,22 +254,65 @@ struct SignalCardCompact: View {
 
 // MARK: - Quick Stats Card
 struct QuickStatsCard: View {
+    @EnvironmentObject var userSettings: UserSettings
+    @State private var weeklyStats: WeeklyStats?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("📊 This Week")
                 .font(.headline)
 
-            HStack(spacing: 20) {
-                StatItem(title: "Win Rate", value: "68%", color: .green)
-                StatItem(title: "Avg Gain", value: "+11.2%", color: .blue)
-                StatItem(title: "Trades", value: "12", color: .orange)
+            if let stats = weeklyStats {
+                HStack(spacing: 20) {
+                    StatItem(
+                        title: "Win Rate",
+                        value: String(format: "%.0f%%", stats.winRate),
+                        color: stats.winRate >= 60 ? .green : stats.winRate >= 50 ? .orange : .red
+                    )
+                    StatItem(
+                        title: "Avg Gain",
+                        value: String(format: "%+.1f%%", stats.avgGain),
+                        color: stats.avgGain > 0 ? .green : .red
+                    )
+                    StatItem(
+                        title: "Trades",
+                        value: "\(stats.totalTrades)",
+                        color: .blue
+                    )
+                }
+            } else {
+                HStack(spacing: 20) {
+                    StatItem(title: "Win Rate", value: "--", color: .gray)
+                    StatItem(title: "Avg Gain", value: "--", color: .gray)
+                    StatItem(title: "Trades", value: "0", color: .gray)
+                }
             }
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .task {
+            await fetchWeeklyStats()
+        }
     }
+
+    private func fetchWeeklyStats() async {
+        // Fetch real stats from Supabase
+        do {
+            let stats = try await SupabaseService.shared.fetchWeeklyStats()
+            weeklyStats = stats
+        } catch {
+            print("Failed to fetch weekly stats: \(error)")
+            weeklyStats = nil
+        }
+    }
+}
+
+struct WeeklyStats {
+    let winRate: Double
+    let avgGain: Double
+    let totalTrades: Int
 }
 
 struct StatItem: View {
