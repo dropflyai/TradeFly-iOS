@@ -31,27 +31,22 @@ platform :ios do
   lane :beta do
     increment_build_number
 
-    # Use manual code signing for CI/CD
+    # Use automatic code signing
     update_code_signing_settings(
-      use_automatic_signing: false,
+      use_automatic_signing: true,
       team_id: "G46B7YC46C",
-      path: "TradeFly.xcodeproj",
-      profile_name: "TradeFly AppStore",
-      code_sign_identity: "Apple Distribution"
+      path: "TradeFly.xcodeproj"
     )
 
     build_app(
       scheme: "TradeFly",
       export_method: "app-store",
+      xcargs: "-allowProvisioningUpdates",
       disable_xcpretty: true,
       export_options: {
         method: "app-store",
         teamID: "G46B7YC46C",
-        signingStyle: "manual",
-        uploadSymbols: true,
-        provisioningProfiles: {
-          "com.dropfly.TradeFly" => "TradeFly AppStore"
-        }
+        uploadSymbols: true
       }
     )
 
