@@ -55,8 +55,12 @@ platform :ios do
     )
 
     # Upload to TestFlight
+    # Debug: Check environment variables
+    UI.message("DEBUG: APP_SPECIFIC_PASSWORD present? #{!ENV['APP_SPECIFIC_PASSWORD'].nil? && !ENV['APP_SPECIFIC_PASSWORD'].empty?}")
+    UI.message("DEBUG: APPLE_ID present? #{!ENV['APPLE_ID'].nil? && !ENV['APPLE_ID'].empty?}")
+
     # GitHub Actions: Use xcrun altool with App-Specific Password
-    if ENV["APP_SPECIFIC_PASSWORD"]
+    if ENV["APP_SPECIFIC_PASSWORD"] && !ENV["APP_SPECIFIC_PASSWORD"].empty?
       UI.message("🔑 Using App-Specific Password for TestFlight upload...")
       apple_id = ENV["APPLE_ID"] || "dropflyai@gmail.com"
       sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' -t ios -u '#{apple_id}' -p '#{ENV['APP_SPECIFIC_PASSWORD']}' --verbose")
@@ -64,6 +68,7 @@ platform :ios do
 
     # Local: Open in Transporter for manual upload
     else
+      UI.important("⚠️  No APP_SPECIFIC_PASSWORD found - using Transporter fallback")
       UI.important("📦 Opening in Transporter for manual upload...")
       sh("open -a Transporter '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}'")
     end
