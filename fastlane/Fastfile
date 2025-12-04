@@ -33,17 +33,15 @@ platform :ios do
     build_number = get_build_number(xcodeproj: "TradeFly.xcodeproj")
     UI.message("Current build number: #{build_number}")
 
-    # Update project settings to disable automatic code signing
+    # Ensure automatic signing is enabled - let Xcode handle everything
     update_code_signing_settings(
-      use_automatic_signing: false,
+      use_automatic_signing: true,
       path: "TradeFly.xcodeproj",
       team_id: "G46B7YC46C",
-      bundle_identifier: "com.tradefly.TradeFly",
-      code_sign_identity: "iPhone Distribution",
-      profile_name: "TradeFly AppStore"
+      bundle_identifier: "com.tradefly.TradeFly"
     )
 
-    # Build and archive
+    # Build and archive with automatic signing
     gym(
       scheme: "TradeFly",
       configuration: "Release",
