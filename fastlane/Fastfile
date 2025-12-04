@@ -51,33 +51,32 @@ platform :ios do
       }
     )
 
-    # Check for App Store Connect API Key
-    api_key_path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8")
+    # Upload to TestFlight
+    # Priority 1: App-Specific Password (for GitHub Actions)
+    if ENV["APPLE_ID"] && ENV["APP_SPECIFIC_PASSWORD"]
+      UI.message("🔑 Using App-Specific Password for upload...")
+      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' -t ios -u '#{ENV['APPLE_ID']}' -p '#{ENV['APP_SPECIFIC_PASSWORD']}'")
+      UI.success("✅ Uploaded to TestFlight successfully!")
 
-    if File.exist?(api_key_path)
-      # Use App Store Connect API Key (automated, no password needed)
+    # Priority 2: App Store Connect API Key
+    elsif File.exist?(File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8"))
+      UI.message("🔑 Using App Store Connect API Key...")
       api_key = app_store_connect_api_key(
         key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
         issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-        key_filepath: api_key_path,
+        key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8"),
         duration: 1200,
         in_house: false
       )
-
       upload_to_testflight(
         api_key: api_key,
         skip_waiting_for_build_processing: true,
-        skip_submission: true,
-        distribute_external: false,
-        notify_external_testers: false
+        skip_submission: true
       )
-    else
-      # Fallback: Use xcrun altool (uses Xcode's authentication)
-      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' --type ios --apiKey #{ENV['APP_STORE_CONNECT_KEY_ID']} --apiIssuer #{ENV['APP_STORE_CONNECT_ISSUER_ID']}") rescue nil
 
-      # If that fails, just export the IPA for manual upload
-      UI.important("⚠️  Automated upload failed. IPA ready at: #{lane_context[SharedValues::IPA_OUTPUT_PATH]}")
-      UI.important("📦 Opening in Transporter...")
+    # Priority 3: Open in Transporter (local development)
+    else
+      UI.important("📦 Opening in Transporter for manual upload...")
       sh("open -a Transporter '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}'")
     end
   end
