@@ -11,9 +11,8 @@ struct MarketsView: View {
     @State private var selectedCategory: MarketCategory = .stocks
     @State private var watchlists: [Watchlist] = Watchlist.defaultWatchlists
     @State private var recentlyViewed: [String] = []
-    @State private var livePrices: [TickerPrice] = []
+    @State private var livePrices: [TickerInfo] = []
     @State private var isLoadingPrices = false
-    @StateObject private var priceService = PriceService.shared
 
     var currentTickers: [String] {
         selectedCategory == .stocks ? TickerInfo.popularStockTickers :
@@ -22,19 +21,10 @@ struct MarketsView: View {
     }
 
     var filteredTickers: [TickerInfo] {
-        let tickerInfos = livePrices.map { price in
-            TickerInfo(
-                ticker: price.ticker,
-                name: price.name,
-                lastPrice: price.lastPrice,
-                changePercent: price.changePercent
-            )
-        }
-
         if searchText.isEmpty {
-            return tickerInfos
+            return livePrices
         } else {
-            return tickerInfos.filter {
+            return livePrices.filter {
                 $0.ticker.localizedCaseInsensitiveContains(searchText) ||
                 $0.name.localizedCaseInsensitiveContains(searchText)
             }
@@ -87,8 +77,9 @@ struct MarketsView: View {
 
     func loadPrices() async {
         isLoadingPrices = true
-        let prices = await priceService.fetchPrices(for: currentTickers)
-        livePrices = prices
+        // TODO: Implement live price fetching
+        // For now, show empty state
+        livePrices = []
         isLoadingPrices = false
     }
 
