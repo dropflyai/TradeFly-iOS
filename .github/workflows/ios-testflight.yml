@@ -36,9 +36,10 @@ jobs:
 
       - name: Build and Upload to TestFlight
         env:
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
         run: |
           bundle exec fastlane beta
 
@@ -47,5 +48,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TradeFly-iOS-Build-${{ github.run_number }}
-          path: TradeFly.ipa
+          path: ./build/TradeFly.ipa
           retention-days: 30
