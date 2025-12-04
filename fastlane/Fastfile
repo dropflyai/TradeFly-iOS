@@ -55,29 +55,14 @@ platform :ios do
     )
 
     # Upload to TestFlight
-    # Priority 1: App-Specific Password (for GitHub Actions)
-    if ENV["APPLE_ID"] && ENV["APP_SPECIFIC_PASSWORD"]
-      UI.message("🔑 Using App-Specific Password for upload...")
-      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' -t ios -u '#{ENV['APPLE_ID']}' -p '#{ENV['APP_SPECIFIC_PASSWORD']}'")
+    # GitHub Actions: Use xcrun altool with App-Specific Password
+    if ENV["APP_SPECIFIC_PASSWORD"]
+      UI.message("🔑 Using App-Specific Password for TestFlight upload...")
+      apple_id = ENV["APPLE_ID"] || "dropflyai@gmail.com"
+      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' -t ios -u '#{apple_id}' -p '#{ENV['APP_SPECIFIC_PASSWORD']}' --verbose")
       UI.success("✅ Uploaded to TestFlight successfully!")
 
-    # Priority 2: App Store Connect API Key
-    elsif File.exist?(File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8"))
-      UI.message("🔑 Using App Store Connect API Key...")
-      api_key = app_store_connect_api_key(
-        key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-        key_filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8"),
-        duration: 1200,
-        in_house: false
-      )
-      upload_to_testflight(
-        api_key: api_key,
-        skip_waiting_for_build_processing: true,
-        skip_submission: true
-      )
-
-    # Priority 3: Open in Transporter (local development)
+    # Local: Open in Transporter for manual upload
     else
       UI.important("📦 Opening in Transporter for manual upload...")
       sh("open -a Transporter '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}'")
