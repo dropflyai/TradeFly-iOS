@@ -426,6 +426,43 @@ class SupabaseService: ObservableObject {
 
     // MARK: - Learning Progress
 
+    func fetchLearningModules() async throws -> [LearningModule] {
+        struct LearningModuleResponse: Decodable {
+            let id: String
+            let title: String
+            let description: String
+            let category: String
+            let duration_minutes: Int
+            let difficulty: String
+            let video_url: String?
+            let content: String
+        }
+
+        let response: [LearningModuleResponse] = try await client
+            .from("learning_modules")
+            .select()
+            .order("created_at", ascending: false)
+            .execute()
+            .value
+
+        // Get user's completed modules
+        let completedModuleIds = try await getLearningProgress()
+
+        return response.map { module in
+            LearningModule(
+                id: module.id,
+                title: module.title,
+                description: module.description,
+                category: LearningCategory(rawValue: module.category) ?? .fundamentals,
+                durationMinutes: module.duration_minutes,
+                difficulty: Difficulty(rawValue: module.difficulty) ?? .beginner,
+                isCompleted: completedModuleIds.contains(module.id),
+                videoURL: module.video_url,
+                content: module.content
+            )
+        }
+    }
+
     func markLessonComplete(moduleId: String) async throws {
         guard let userId = currentUser?.id else {
             throw SupabaseError.notAuthenticated

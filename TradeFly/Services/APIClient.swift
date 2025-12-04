@@ -39,8 +39,18 @@ class APIClient {
 
     func fetchEducationalContent(completion: @escaping (Result<[LearningModule], Error>) -> Void) {
         // TODO: Implement actual API call
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            completion(.success(LearningModule.samples))
+        // NO SAMPLE DATA - Fetch from Supabase
+        Task {
+            do {
+                let modules = try await SupabaseService.shared.fetchLearningModules()
+                await MainActor.run {
+                    completion(.success(modules))
+                }
+            } catch {
+                await MainActor.run {
+                    completion(.failure(error))
+                }
+            }
         }
     }
 }

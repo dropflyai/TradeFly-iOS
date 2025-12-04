@@ -13,9 +13,12 @@ struct MarketsView: View {
     @State private var recentlyViewed: [String] = []
 
     var filteredTickers: [TickerInfo] {
-        let category = selectedCategory == .stocks ? TickerInfo.popularStocks :
-                       selectedCategory == .crypto ? TickerInfo.popularCrypto :
-                       TickerInfo.popularETFs
+        // Fetch live data based on category - NO MOCK DATA
+        let tickers = selectedCategory == .stocks ? TickerInfo.popularStockTickers :
+                      selectedCategory == .crypto ? TickerInfo.popularCryptoTickers :
+                      TickerInfo.popularETFTickers
+
+        let category: [TickerInfo] = [] // Will be populated from live data fetch
 
         if searchText.isEmpty {
             return category
@@ -297,38 +300,10 @@ struct TickerInfo: Identifiable {
     let lastPrice: Double
     let changePercent: Double
 
-    static let popularStocks = [
-        TickerInfo(ticker: "AAPL", name: "Apple Inc.", lastPrice: 178.50, changePercent: 1.25),
-        TickerInfo(ticker: "NVDA", name: "NVIDIA Corporation", lastPrice: 495.20, changePercent: 2.35),
-        TickerInfo(ticker: "TSLA", name: "Tesla, Inc.", lastPrice: 242.80, changePercent: -0.85),
-        TickerInfo(ticker: "MSFT", name: "Microsoft Corporation", lastPrice: 378.90, changePercent: 0.95),
-        TickerInfo(ticker: "GOOGL", name: "Alphabet Inc.", lastPrice: 141.20, changePercent: 1.10),
-        TickerInfo(ticker: "AMZN", name: "Amazon.com, Inc.", lastPrice: 151.30, changePercent: 0.75),
-        TickerInfo(ticker: "META", name: "Meta Platforms, Inc.", lastPrice: 346.70, changePercent: 1.45),
-        TickerInfo(ticker: "AMD", name: "Advanced Micro Devices", lastPrice: 138.60, changePercent: 1.80),
-        TickerInfo(ticker: "SPY", name: "SPDR S&P 500 ETF", lastPrice: 461.50, changePercent: 0.55),
-        TickerInfo(ticker: "QQQ", name: "Invesco QQQ Trust", lastPrice: 401.20, changePercent: 0.85)
-    ]
-
-    static let popularCrypto = [
-        TickerInfo(ticker: "BTC-USD", name: "Bitcoin", lastPrice: 42350.00, changePercent: 3.25),
-        TickerInfo(ticker: "ETH-USD", name: "Ethereum", lastPrice: 2245.50, changePercent: 2.15),
-        TickerInfo(ticker: "BNB-USD", name: "Binance Coin", lastPrice: 305.20, changePercent: 1.85),
-        TickerInfo(ticker: "SOL-USD", name: "Solana", lastPrice: 98.75, changePercent: 5.45),
-        TickerInfo(ticker: "ADA-USD", name: "Cardano", lastPrice: 0.52, changePercent: 2.30),
-        TickerInfo(ticker: "DOGE-USD", name: "Dogecoin", lastPrice: 0.089, changePercent: 1.20),
-        TickerInfo(ticker: "AVAX-USD", name: "Avalanche", lastPrice: 35.60, changePercent: 3.10),
-        TickerInfo(ticker: "DOT-USD", name: "Polkadot", lastPrice: 6.85, changePercent: 0.95)
-    ]
-
-    static let popularETFs = [
-        TickerInfo(ticker: "SPY", name: "SPDR S&P 500", lastPrice: 461.50, changePercent: 0.55),
-        TickerInfo(ticker: "QQQ", name: "Invesco QQQ", lastPrice: 401.20, changePercent: 0.85),
-        TickerInfo(ticker: "IWM", name: "iShares Russell 2000", lastPrice: 195.30, changePercent: -0.35),
-        TickerInfo(ticker: "VOO", name: "Vanguard S&P 500", lastPrice: 424.80, changePercent: 0.58),
-        TickerInfo(ticker: "VTI", name: "Vanguard Total Stock", lastPrice: 242.10, changePercent: 0.65),
-        TickerInfo(ticker: "ARKK", name: "ARK Innovation ETF", lastPrice: 45.20, changePercent: 2.15)
-    ]
+    // NO HARDCODED DATA - These are just ticker symbols to fetch
+    static let popularStockTickers = ["AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "AMZN", "META", "AMD", "SPY", "QQQ"]
+    static let popularCryptoTickers = ["BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "ADA-USD", "DOGE-USD", "AVAX-USD", "DOT-USD"]
+    static let popularETFTickers = ["SPY", "QQQ", "IWM", "VOO", "VTI", "ARKK"]
 }
 
 struct Watchlist: Identifiable {

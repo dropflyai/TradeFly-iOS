@@ -6,8 +6,9 @@
 import SwiftUI
 
 struct LearnView: View {
-    @State private var modules: [LearningModule] = LearningModule.samples
+    @State private var modules: [LearningModule] = [] // Start empty - fetch from database
     @State private var selectedModule: LearningModule?
+    @State private var isLoading = false
 
     var modulesByCategory: [LearningCategory: [LearningModule]] {
         Dictionary(grouping: modules) { $0.category }

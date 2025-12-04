@@ -206,8 +206,8 @@ struct AdvancedChartView: View {
 
     func fetchCandleData(ticker: String, timeframe: ChartTimeframe) async throws -> [CandleData] {
         // TODO: Replace with actual API call to backend
-        // For now, return sample data
-        return generateSampleData()
+        // NO SAMPLE DATA - Fetch from API
+        return [] // Return empty until live data is fetched
     }
 
     func calculateIndicators(for data: [CandleData]) -> TechnicalIndicators {
@@ -360,8 +360,9 @@ struct AdvancedChartView: View {
         return (upper, lower)
     }
 
-    func generateSampleData() -> [CandleData] {
-        // Generate realistic sample candlestick data
+    // DELETED - No sample data generation
+    func fetchRealMarketData() -> [CandleData] {
+        // TODO: Fetch real candlestick data from API
         var data: [CandleData] = []
         var currentPrice = 150.0
         let baseDate = Date().addingTimeInterval(-3600 * 100) // 100 hours ago

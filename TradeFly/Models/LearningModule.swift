@@ -49,9 +49,10 @@ enum Difficulty: String, Codable {
     case advanced = "Advanced"
 }
 
-// MARK: - Sample Data
+// MARK: - Preview Sample (DEBUG only)
+#if DEBUG
 extension LearningModule {
-    static let samples: [LearningModule] = [
+    static let previewSamples: [LearningModule] = [
         LearningModule(
             id: "1",
             title: "What is VWAP?",
@@ -197,6 +198,7 @@ extension LearningModule {
     ]
 
     static func modulesByCategory() -> [LearningCategory: [LearningModule]] {
-        Dictionary(grouping: samples) { $0.category }
+        Dictionary(grouping: previewSamples) { $0.category }
     }
 }
+#endif

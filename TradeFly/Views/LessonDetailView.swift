@@ -127,7 +127,3 @@ struct NextLessonCard: View {
         .cornerRadius(10)
     }
 }
-
-#Preview {
-    LessonDetailView(module: LearningModule.samples[0])
-}
