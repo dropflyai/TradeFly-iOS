@@ -659,7 +659,4 @@ struct EducationalTermView: View {
     }
 }
 
-#Preview {
-    SignalDetailView(signal: TradingSignal.previewSample)
-        .environmentObject(SignalService())
-}
+// Preview removed - previewSample only available in DEBUG builds
