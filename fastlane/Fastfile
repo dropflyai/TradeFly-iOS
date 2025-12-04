@@ -50,13 +50,36 @@ platform :ios do
         uploadSymbols: true
       }
     )
-    # Upload to TestFlight - NO username parameter (uses stored keychain credentials)
-    upload_to_testflight(
-      skip_waiting_for_build_processing: true,
-      skip_submission: true,
-      distribute_external: false,
-      notify_external_testers: false
-    )
+
+    # Check for App Store Connect API Key
+    api_key_path = File.expand_path("~/.appstoreconnect/private_keys/AuthKey.p8")
+
+    if File.exist?(api_key_path)
+      # Use App Store Connect API Key (automated, no password needed)
+      api_key = app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+        key_filepath: api_key_path,
+        duration: 1200,
+        in_house: false
+      )
+
+      upload_to_testflight(
+        api_key: api_key,
+        skip_waiting_for_build_processing: true,
+        skip_submission: true,
+        distribute_external: false,
+        notify_external_testers: false
+      )
+    else
+      # Fallback: Use xcrun altool (uses Xcode's authentication)
+      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' --type ios --apiKey #{ENV['APP_STORE_CONNECT_KEY_ID']} --apiIssuer #{ENV['APP_STORE_CONNECT_ISSUER_ID']}") rescue nil
+
+      # If that fails, just export the IPA for manual upload
+      UI.important("⚠️  Automated upload failed. IPA ready at: #{lane_context[SharedValues::IPA_OUTPUT_PATH]}")
+      UI.important("📦 Opening in Transporter...")
+      sh("open -a Transporter '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}'")
+    end
   end
 
   desc "Deploy to App Store"
