@@ -42,10 +42,14 @@ platform :ios do
       output_name: "TradeFly.ipa",
       clean: true,
       xcodebuild_formatter: "",  # Disable xcpretty to avoid bundler issues
+      codesigning_identity: "iPhone Distribution",
       export_options: {
         method: "app-store",
         teamID: "G46B7YC46C",
-        signingStyle: "automatic",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.tradefly.TradeFly" => "TradeFly AppStore"
+        },
         uploadSymbols: true,
         uploadBitcode: false
       }
