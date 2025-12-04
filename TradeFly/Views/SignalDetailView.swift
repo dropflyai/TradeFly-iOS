@@ -120,6 +120,44 @@ struct TradeDetailsSection: View {
             Text("📊 Trade Details")
                 .font(.headline)
 
+            // Signal Strength & Win Probability
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Signal Strength")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack {
+                        Text("\(Int(signal.signalStrength))%")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(signal.signalStrength >= 80 ? .green : signal.signalStrength >= 60 ? .orange : .red)
+
+                        ProgressView(value: signal.signalStrength / 100)
+                            .tint(signal.signalStrength >= 80 ? .green : signal.signalStrength >= 60 ? .orange : .red)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Win Probability")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    HStack {
+                        Text("\(Int(signal.successProbability))%")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(signal.successProbability >= 70 ? .green : signal.successProbability >= 55 ? .orange : .red)
+
+                        ProgressView(value: signal.successProbability / 100)
+                            .tint(signal.successProbability >= 70 ? .green : signal.successProbability >= 55 ? .orange : .red)
+                    }
+                }
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+
             VStack(spacing: 12) {
                 DetailRow(label: "Entry", value: signal.entry.formatted)
                 DetailRow(label: "Stop Loss", value: "$\(String(format: "%.2f", signal.stopLoss)) (-\(String(format: "%.1f", ((signal.price - signal.stopLoss) / signal.price * 100)))%)")

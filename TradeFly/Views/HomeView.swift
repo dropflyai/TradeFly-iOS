@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct HomeView: View {
     @EnvironmentObject var userSettings: UserSettings
@@ -15,6 +16,9 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Market Status Banner
+                    MarketStatusBanner()
+
                     // Today's Progress Card
                     ProgressCard(
                         currentProfit: todayProfit,
@@ -35,6 +39,9 @@ struct HomeView: View {
                     Spacer()
                 }
                 .padding()
+            }
+            .refreshable {
+                signalService.fetchSignals()
             }
             .navigationTitle("TradeFly AI")
             .toolbar {
@@ -142,9 +149,7 @@ struct ActiveSignalsSection: View {
                 Spacer()
 
                 if signalService.activeSignals.isEmpty {
-                    Text("Next scan in: 45s")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    TimerView()
                 }
             }
 
@@ -342,8 +347,28 @@ struct NotificationButton: View {
     }
 }
 
+// MARK: - Timer View
+struct TimerView: View {
+    @State private var timeRemaining = 30
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        Text("Next scan in: \(timeRemaining)s")
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .onReceive(timer) { _ in
+                if timeRemaining > 0 {
+                    timeRemaining -= 1
+                } else {
+                    timeRemaining = 30
+                }
+            }
+    }
+}
+
 #Preview {
     HomeView()
         .environmentObject(UserSettings())
         .environmentObject(SignalService())
+        .environmentObject(AppState())
 }

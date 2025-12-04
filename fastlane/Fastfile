@@ -34,6 +34,7 @@ platform :ios do
     # Use automatic code signing
     update_code_signing_settings(
       use_automatic_signing: true,
+      team_id: "G46B7YC46C",
       path: "TradeFly.xcodeproj"
     )
 
@@ -41,13 +42,16 @@ platform :ios do
       scheme: "TradeFly",
       export_method: "app-store",
       xcargs: "-allowProvisioningUpdates",
+      disable_xcpretty: true,
       export_options: {
-        provisioningProfiles: {
-          "com.tradefly.TradeFly" => "match AppStore com.tradefly.TradeFly"
-        }
+        method: "app-store",
+        teamID: "G46B7YC46C",
+        signingStyle: "automatic",
+        uploadSymbols: true
       }
     )
     upload_to_testflight(
+      username: "dropflyai@gmail.com",
       skip_waiting_for_build_processing: true
     )
   end

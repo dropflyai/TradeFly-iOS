@@ -24,6 +24,9 @@ struct TradingSignal: Identifiable, Codable {
     let target: Double
     let targetPercentage: Double
     let timeframe: String
+    let assetType: AssetType
+    let signalStrength: Double // 0-100
+    let successProbability: Double // 0-100
 
     var formattedTimestamp: String {
         let formatter = DateFormatter()
@@ -114,6 +117,18 @@ enum TradeIdea: String, Codable {
     case skip = "SKIP"
 }
 
+enum AssetType: String, Codable {
+    case stock = "STOCK"
+    case crypto = "CRYPTO"
+
+    var displayName: String {
+        switch self {
+        case .stock: return "Stocks"
+        case .crypto: return "Crypto"
+        }
+    }
+}
+
 struct PriceRange: Codable {
     let low: Double
     let high: Double
@@ -143,7 +158,10 @@ extension TradingSignal {
         stopLoss: 187.80,
         target: 188.20 * 1.12,
         targetPercentage: 12.0,
-        timeframe: "1min"
+        timeframe: "1min",
+        assetType: .stock,
+        signalStrength: 92.0,
+        successProbability: 78.0
     )
 
     static let samples: [TradingSignal] = [
@@ -166,7 +184,10 @@ extension TradingSignal {
             stopLoss: 175.40,
             target: 175.80 * 1.10,
             targetPercentage: 10.0,
-            timeframe: "1min"
+            timeframe: "1min",
+            assetType: .stock,
+            signalStrength: 88.0,
+            successProbability: 72.0
         ),
         TradingSignal(
             id: UUID().uuidString,
@@ -186,7 +207,56 @@ extension TradingSignal {
             stopLoss: 242.90,
             target: 242.10 * 0.90,
             targetPercentage: 10.0,
-            timeframe: "1min"
+            timeframe: "1min",
+            assetType: .stock,
+            signalStrength: 72.0,
+            successProbability: 65.0
+        ),
+        TradingSignal(
+            id: UUID().uuidString,
+            ticker: "BTC",
+            signalType: .vwapReclaimLong,
+            quality: .high,
+            timestamp: Date().addingTimeInterval(-300),
+            price: 42150.50,
+            vwap: 42000.00,
+            ema9: 42100.00,
+            ema20: 41950.00,
+            ema50: 41800.00,
+            volume: 1500000,
+            context: "Bitcoin reclaims VWAP with strong volume, bullish momentum building",
+            idea: .call,
+            entry: PriceRange(low: 42100.00, high: 42200.00),
+            stopLoss: 41900.00,
+            target: 42150.50 * 1.08,
+            targetPercentage: 8.0,
+            timeframe: "1min",
+            assetType: .crypto,
+            signalStrength: 85.0,
+            successProbability: 70.0
+        ),
+        TradingSignal(
+            id: UUID().uuidString,
+            ticker: "ETH",
+            signalType: .hodBreakoutLong,
+            quality: .medium,
+            timestamp: Date().addingTimeInterval(-150),
+            price: 2245.80,
+            vwap: 2240.00,
+            ema9: 2243.00,
+            ema20: 2238.00,
+            ema50: 2230.00,
+            volume: 980000,
+            context: "Ethereum breaking HOD with decent volume, watching for continuation",
+            idea: .call,
+            entry: PriceRange(low: 2243.00, high: 2248.00),
+            stopLoss: 2230.00,
+            target: 2245.80 * 1.10,
+            targetPercentage: 10.0,
+            timeframe: "1min",
+            assetType: .crypto,
+            signalStrength: 76.0,
+            successProbability: 68.0
         )
     ]
 }

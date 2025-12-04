@@ -8,18 +8,31 @@ import SwiftUI
 struct SignalsView: View {
     @EnvironmentObject var signalService: SignalService
     @State private var selectedQuality: Quality? = nil
+    @State private var selectedAssetType: AssetType? = nil
     @State private var selectedSignal: TradingSignal?
 
     var filteredSignals: [TradingSignal] {
+        var signals = signalService.activeSignals
+
         if let quality = selectedQuality {
-            return signalService.activeSignals.filter { $0.quality == quality }
+            signals = signals.filter { $0.quality == quality }
         }
-        return signalService.activeSignals
+
+        if let assetType = selectedAssetType {
+            signals = signals.filter { $0.assetType == assetType }
+        }
+
+        return signals
     }
 
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
+                // Asset Type Filter
+                AssetTypeFilterBar(selectedAssetType: $selectedAssetType)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+
                 // Quality Filter
                 QualityFilterBar(selectedQuality: $selectedQuality)
                     .padding(.horizontal)
@@ -58,38 +71,70 @@ struct SignalsView: View {
     }
 }
 
+// MARK: - Asset Type Filter Bar
+struct AssetTypeFilterBar: View {
+    @Binding var selectedAssetType: AssetType?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            FilterChip(
+                title: "All Assets",
+                isSelected: selectedAssetType == nil
+            ) {
+                selectedAssetType = nil
+            }
+
+            FilterChip(
+                title: "📈 Stocks",
+                isSelected: selectedAssetType == .stock
+            ) {
+                selectedAssetType = .stock
+            }
+
+            FilterChip(
+                title: "₿ Crypto",
+                isSelected: selectedAssetType == .crypto
+            ) {
+                selectedAssetType = .crypto
+            }
+        }
+    }
+}
+
 // MARK: - Quality Filter Bar
 struct QualityFilterBar: View {
     @Binding var selectedQuality: Quality?
 
     var body: some View {
-        HStack(spacing: 12) {
-            FilterChip(
-                title: "All",
-                isSelected: selectedQuality == nil
-            ) {
-                selectedQuality = nil
-            }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                FilterChip(
+                    title: "All",
+                    isSelected: selectedQuality == nil
+                ) {
+                    selectedQuality = nil
+                }
 
-            FilterChip(
-                title: "⭐⭐⭐ HIGH",
-                isSelected: selectedQuality == .high
-            ) {
-                selectedQuality = .high
-            }
+                FilterChip(
+                    title: "⭐⭐⭐ HIGH",
+                    isSelected: selectedQuality == .high
+                ) {
+                    selectedQuality = .high
+                }
 
-            FilterChip(
-                title: "⭐⭐ MEDIUM",
-                isSelected: selectedQuality == .medium
-            ) {
-                selectedQuality = .medium
-            }
+                FilterChip(
+                    title: "⭐⭐ MEDIUM",
+                    isSelected: selectedQuality == .medium
+                ) {
+                    selectedQuality = .medium
+                }
 
-            FilterChip(
-                title: "⭐ LOW",
-                isSelected: selectedQuality == .low
-            ) {
-                selectedQuality = .low
+                FilterChip(
+                    title: "⭐ LOW",
+                    isSelected: selectedQuality == .low
+                ) {
+                    selectedQuality = .low
+                }
             }
         }
     }
@@ -140,6 +185,14 @@ struct SignalCard: View {
                 Spacer()
 
                 QualityBadge(quality: signal.quality)
+            }
+
+            Divider()
+
+            // Signal Strength & Success Probability
+            HStack(spacing: 16) {
+                SignalStrengthMeter(strength: signal.signalStrength)
+                SuccessProbabilityMeter(probability: signal.successProbability)
             }
 
             Divider()
@@ -215,6 +268,88 @@ struct PriceInfoItem: View {
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.semibold)
+        }
+    }
+}
+
+// MARK: - Signal Strength Meter
+struct SignalStrengthMeter: View {
+    let strength: Double
+
+    var strengthColor: Color {
+        if strength >= 80 { return .green }
+        if strength >= 60 { return .orange }
+        return .red
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Signal Strength")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Text("\(Int(strength))%")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(strengthColor)
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 8)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(strengthColor)
+                        .frame(width: geometry.size.width * CGFloat(strength / 100), height: 8)
+                }
+            }
+            .frame(height: 8)
+        }
+    }
+}
+
+// MARK: - Success Probability Meter
+struct SuccessProbabilityMeter: View {
+    let probability: Double
+
+    var probabilityColor: Color {
+        if probability >= 70 { return .green }
+        if probability >= 55 { return .orange }
+        return .red
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Win Probability")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Spacer()
+
+                Text("\(Int(probability))%")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(probabilityColor)
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(height: 8)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(probabilityColor)
+                        .frame(width: geometry.size.width * CGFloat(probability / 100), height: 8)
+                }
+            }
+            .frame(height: 8)
         }
     }
 }

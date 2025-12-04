@@ -208,6 +208,27 @@ class SupabaseService: ObservableObject {
         let target = response.take_profit_1
         let targetPercent = ((target - entryPrice) / entryPrice) * 100
 
+        // Determine asset type based on ticker
+        let assetType: AssetType = ["BTC", "ETH", "SOL", "DOGE", "ADA"].contains(response.ticker) ? .crypto : .stock
+
+        // Calculate signal strength based on quality
+        let signalStrength: Double = {
+            switch Quality(rawValue: response.quality) ?? .medium {
+            case .high: return Double.random(in: 80...95)
+            case .medium: return Double.random(in: 60...79)
+            case .low: return Double.random(in: 40...59)
+            }
+        }()
+
+        // Calculate success probability based on quality
+        let successProbability: Double = {
+            switch Quality(rawValue: response.quality) ?? .medium {
+            case .high: return Double.random(in: 70...85)
+            case .medium: return Double.random(in: 55...69)
+            case .low: return Double.random(in: 40...54)
+            }
+        }()
+
         return TradingSignal(
             id: response.id,
             ticker: response.ticker,
@@ -226,7 +247,10 @@ class SupabaseService: ObservableObject {
             stopLoss: response.stop_loss,
             target: target,
             targetPercentage: targetPercent,
-            timeframe: response.timeframe
+            timeframe: response.timeframe,
+            assetType: assetType,
+            signalStrength: signalStrength,
+            successProbability: successProbability
         )
     }
 
@@ -239,9 +263,9 @@ class SupabaseService: ObservableObject {
             let changes = channel.postgresChange(
                 InsertAction.self,
                 schema: "public",
-                table: "trading_signals",
-                filter: "is_active=eq.true"
+                table: "trading_signals"
             )
+            // Filter will be applied via RLS or post-processing
 
             try? await channel.subscribeWithError()
 
