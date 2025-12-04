@@ -48,28 +48,47 @@ class SupabaseService: ObservableObject {
     }
 
     func signUp(email: String, password: String) async throws {
-        let response = try await client.auth.signUp(
-            email: email,
-            password: password
-        )
+        do {
+            let response = try await client.auth.signUp(
+                email: email,
+                password: password
+            )
 
-        // Profile will be auto-created by database trigger
-        // No need to manually create it here
-        await MainActor.run {
-            self.currentUser = response.user
-            self.isAuthenticated = true
+            // Profile will be auto-created by database trigger
+            await MainActor.run {
+                self.currentUser = response.user
+                self.isAuthenticated = true
+            }
+        } catch {
+            // Check for specific error messages from Supabase
+            let errorString = error.localizedDescription.lowercased()
+            if errorString.contains("already registered") || errorString.contains("already exists") || errorString.contains("user already registered") {
+                throw SupabaseError.emailAlreadyExists
+            }
+            throw error
         }
     }
 
     func signIn(email: String, password: String) async throws {
-        let session = try await client.auth.signIn(
-            email: email,
-            password: password
-        )
+        do {
+            let session = try await client.auth.signIn(
+                email: email,
+                password: password
+            )
 
-        await MainActor.run {
-            self.currentUser = session.user
-            self.isAuthenticated = true
+            await MainActor.run {
+                self.currentUser = session.user
+                self.isAuthenticated = true
+            }
+        } catch {
+            // Provide better error messages
+            let errorString = error.localizedDescription.lowercased()
+            if errorString.contains("invalid") || errorString.contains("credentials") || errorString.contains("password") || errorString.contains("login") {
+                throw SupabaseError.invalidCredentials
+            } else if errorString.contains("email") && (errorString.contains("confirm") || errorString.contains("not confirmed")) {
+                throw SupabaseError.emailNotConfirmed
+            }
+            throw error
         }
     }
 
@@ -530,6 +549,9 @@ struct SignalPerformanceRecord: Codable {
 enum SupabaseError: LocalizedError {
     case notAuthenticated
     case invalidResponse
+    case invalidCredentials
+    case emailAlreadyExists
+    case emailNotConfirmed
 
     var errorDescription: String? {
         switch self {
@@ -537,6 +559,12 @@ enum SupabaseError: LocalizedError {
             return "User is not authenticated"
         case .invalidResponse:
             return "Invalid response from server"
+        case .invalidCredentials:
+            return "Invalid email or password. Please check your credentials and try again."
+        case .emailAlreadyExists:
+            return "This email is already registered. Please sign in instead."
+        case .emailNotConfirmed:
+            return "Please check your email and confirm your account before signing in."
         }
     }
 }
