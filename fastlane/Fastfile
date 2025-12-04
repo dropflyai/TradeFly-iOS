@@ -29,46 +29,38 @@ platform :ios do
 
   desc "Build and upload to TestFlight"
   lane :beta do
-    increment_build_number
+    # Increment build number
+    build_number = get_build_number(xcodeproj: "TradeFly.xcodeproj")
+    UI.message("Current build number: #{build_number}")
 
-    # Use manual code signing for CI/CD
-    update_code_signing_settings(
-      use_automatic_signing: false,
-      team_id: "G46B7YC46C",
-      path: "TradeFly.xcodeproj",
-      code_sign_identity: "Apple Distribution"
-    )
-
-    build_app(
+    # Build the app
+    gym(
       scheme: "TradeFly",
+      configuration: "Release",
       export_method: "app-store",
-      disable_xcpretty: true,
+      output_directory: "./build",
+      output_name: "TradeFly.ipa",
+      clean: true,
+      xcodebuild_formatter: "",  # Disable xcpretty to avoid bundler issues
       export_options: {
         method: "app-store",
         teamID: "G46B7YC46C",
+        signingStyle: "automatic",
         uploadSymbols: true,
-        signingStyle: "manual"
+        uploadBitcode: false
       }
     )
 
     # Upload to TestFlight
-    # Support both env variable naming conventions
-    app_password = ENV["APP_SPECIFIC_PASSWORD"] || ENV["FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD"]
-    apple_id = ENV["APPLE_ID"] || ENV["FASTLANE_USER"] || "dropflyai@gmail.com"
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false,
+      ipa: "./build/TradeFly.ipa"
+    )
 
-    # GitHub Actions: Use xcrun altool with App-Specific Password
-    if app_password && !app_password.empty?
-      UI.message("🔑 Using App-Specific Password for TestFlight upload...")
-      UI.message("Apple ID: #{apple_id}")
-      sh("xcrun altool --upload-app -f '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}' -t ios -u '#{apple_id}' -p '#{app_password}' --verbose")
-      UI.success("✅ Uploaded to TestFlight successfully!")
-
-    # Local: Open in Transporter for manual upload
-    else
-      UI.important("⚠️  No App-Specific Password found - using Transporter fallback")
-      UI.important("📦 Opening in Transporter for manual upload...")
-      sh("open -a Transporter '#{lane_context[SharedValues::IPA_OUTPUT_PATH]}'")
-    end
+    UI.success("✅ Build #{build_number} uploaded to TestFlight successfully!")
   end
 
   desc "Deploy to App Store"
