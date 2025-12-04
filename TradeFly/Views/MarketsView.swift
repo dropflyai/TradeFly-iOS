@@ -11,19 +11,30 @@ struct MarketsView: View {
     @State private var selectedCategory: MarketCategory = .stocks
     @State private var watchlists: [Watchlist] = Watchlist.defaultWatchlists
     @State private var recentlyViewed: [String] = []
+    @State private var livePrices: [TickerPrice] = []
+    @State private var isLoadingPrices = false
+    @StateObject private var priceService = PriceService.shared
+
+    var currentTickers: [String] {
+        selectedCategory == .stocks ? TickerInfo.popularStockTickers :
+        selectedCategory == .crypto ? TickerInfo.popularCryptoTickers :
+        TickerInfo.popularETFTickers
+    }
 
     var filteredTickers: [TickerInfo] {
-        // Fetch live data based on category - NO MOCK DATA
-        let tickers = selectedCategory == .stocks ? TickerInfo.popularStockTickers :
-                      selectedCategory == .crypto ? TickerInfo.popularCryptoTickers :
-                      TickerInfo.popularETFTickers
-
-        let category: [TickerInfo] = [] // Will be populated from live data fetch
+        let tickerInfos = livePrices.map { price in
+            TickerInfo(
+                ticker: price.ticker,
+                name: price.name,
+                lastPrice: price.lastPrice,
+                changePercent: price.changePercent
+            )
+        }
 
         if searchText.isEmpty {
-            return category
+            return tickerInfos
         } else {
-            return category.filter {
+            return tickerInfos.filter {
                 $0.ticker.localizedCaseInsensitiveContains(searchText) ||
                 $0.name.localizedCaseInsensitiveContains(searchText)
             }
@@ -63,7 +74,22 @@ struct MarketsView: View {
                 }
             }
             .navigationTitle("Markets")
+            .task {
+                await loadPrices()
+            }
+            .onChange(of: selectedCategory) {
+                Task {
+                    await loadPrices()
+                }
+            }
         }
+    }
+
+    func loadPrices() async {
+        isLoadingPrices = true
+        let prices = await priceService.fetchPrices(for: currentTickers)
+        livePrices = prices
+        isLoadingPrices = false
     }
 
     func addToRecentlyViewed(_ ticker: String) {

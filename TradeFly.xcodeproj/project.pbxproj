@@ -17,8 +17,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E75A3E412ED7DA52007239E7 /* TradeFly */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = TradeFly;
 			sourceTree = "<group>";
 		};
@@ -265,7 +263,7 @@
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = G46B7YC46C;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = G46B7YC46C;
 				ENABLE_PREVIEWS = YES;
@@ -302,7 +300,7 @@
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 35;
+				CURRENT_PROJECT_VERSION = 36;
 				DEVELOPMENT_TEAM = G46B7YC46C;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = G46B7YC46C;
 				ENABLE_PREVIEWS = YES;

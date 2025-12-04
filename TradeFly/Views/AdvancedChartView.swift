@@ -87,7 +87,7 @@ struct AdvancedChartView: View {
 
             // Timeframe selector
             TimeframeSelector(selectedTimeframe: $selectedTimeframe)
-                .onChange(of: selectedTimeframe) { _ in
+                .onChange(of: selectedTimeframe) {
                     Task {
                         await loadChartData()
                     }
