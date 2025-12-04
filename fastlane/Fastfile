@@ -47,7 +47,10 @@ platform :ios do
         method: "app-store",
         teamID: "G46B7YC46C",
         signingStyle: "automatic",
-        uploadSymbols: true
+        uploadSymbols: true,
+        provisioningProfiles: {
+          "com.dropfly.TradeFly" => "TradeFly AppStore"
+        }
       }
     )
 
