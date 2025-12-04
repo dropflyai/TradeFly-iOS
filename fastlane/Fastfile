@@ -50,9 +50,12 @@ platform :ios do
         uploadSymbols: true
       }
     )
+    # Upload to TestFlight - NO username parameter (uses stored keychain credentials)
     upload_to_testflight(
-      username: "dropflyai@gmail.com",
-      skip_waiting_for_build_processing: true
+      skip_waiting_for_build_processing: true,
+      skip_submission: true,
+      distribute_external: false,
+      notify_external_testers: false
     )
   end
 
