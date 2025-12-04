@@ -33,7 +33,17 @@ platform :ios do
     build_number = get_build_number(xcodeproj: "TradeFly.xcodeproj")
     UI.message("Current build number: #{build_number}")
 
-    # Build the app
+    # Update project settings to disable automatic code signing
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "TradeFly.xcodeproj",
+      team_id: "G46B7YC46C",
+      bundle_identifier: "com.tradefly.TradeFly",
+      code_sign_identity: "iPhone Distribution",
+      profile_name: "TradeFly AppStore"
+    )
+
+    # Build and archive
     gym(
       scheme: "TradeFly",
       configuration: "Release",
@@ -42,15 +52,9 @@ platform :ios do
       output_name: "TradeFly.ipa",
       clean: true,
       xcodebuild_formatter: "",  # Disable xcpretty to avoid bundler issues
-      codesigning_identity: "iPhone Distribution",
-      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=G46B7YC46C PROVISIONING_PROFILE_SPECIFIER='TradeFly AppStore'",
       export_options: {
         method: "app-store",
         teamID: "G46B7YC46C",
-        signingStyle: "manual",
-        provisioningProfiles: {
-          "com.tradefly.TradeFly" => "TradeFly AppStore"
-        },
         uploadSymbols: true,
         uploadBitcode: false
       }
