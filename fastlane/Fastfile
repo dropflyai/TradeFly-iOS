@@ -43,6 +43,7 @@ platform :ios do
       clean: true,
       xcodebuild_formatter: "",  # Disable xcpretty to avoid bundler issues
       codesigning_identity: "iPhone Distribution",
+      xcargs: "CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=G46B7YC46C PROVISIONING_PROFILE_SPECIFIER='TradeFly AppStore'",
       export_options: {
         method: "app-store",
         teamID: "G46B7YC46C",
