@@ -22,7 +22,20 @@ jobs:
       - name: Download Provisioning Profile
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          # Decode and save profile
+          echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
+          security cms -D -i profile.mobileprovision > profile.plist
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" profile.plist)
+          echo "Provisioning Profile UUID: $PP_UUID"
+          # Extract Profile Name
+          PP_NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" profile.plist)
+          echo "Provisioning Profile Name: $PP_NAME"
+          PP_APP_ID=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" profile.plist)
+          echo "Provisioning Profile App ID: $PP_APP_ID"
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
+          # List installed profiles
+          echo "Installed provisioning profiles:"
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
 
       - name: Build iOS App
         run: |
