@@ -13,16 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Ruby for Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-          working-directory: .
-
-      - name: Install Fastlane dependencies
-        run: bundle install
-
       - name: Import Code-Signing Certificates
         uses: apple-actions/import-codesign-certs@v2
         with:
@@ -34,19 +24,40 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "${{ secrets.IOS_PROVISIONING_PROFILE }}" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
-      - name: Build and Upload to TestFlight
-        env:
-          FASTLANE_USER: ${{ secrets.APPLE_ID }}
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+      - name: Build iOS App
         run: |
-          bundle exec fastlane beta
+          xcodebuild \
+            -project TradeFly.xcodeproj \
+            -scheme TradeFly \
+            -configuration Release \
+            -archivePath $PWD/build/TradeFly.xcarchive \
+            archive
+
+      - name: Export IPA
+        run: |
+          xcodebuild \
+            -exportArchive \
+            -archivePath $PWD/build/TradeFly.xcarchive \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath $PWD/build
 
       - name: Upload IPA to GitHub Artifacts (backup)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: TradeFly-iOS-Build-${{ github.run_number }}
-          path: ./build/TradeFly.ipa
+          path: ./build/*.ipa
           retention-days: 30
+
+      - name: Upload to TestFlight
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        run: |
+          cd build
+          xcrun altool --upload-app \
+            -f *.ipa \
+            -t ios \
+            -u "$APPLE_ID" \
+            -p "$APP_SPECIFIC_PASSWORD" \
+            --verbose
