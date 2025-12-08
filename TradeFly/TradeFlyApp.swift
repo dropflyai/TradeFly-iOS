@@ -59,8 +59,9 @@ class AppState: ObservableObject {
         case home
         case signals
         case markets
-        case crypto
-        case more
+        case learn
+        case trades
+        case settings
     }
 
     init() {

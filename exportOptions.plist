@@ -17,7 +17,7 @@
     <key>provisioningProfiles</key>
     <dict>
         <key>com.tradefly.TradeFly</key>
-        <string>TradeFly App Store</string>
+        <string>TradeFly AppStore</string>
     </dict>
 </dict>
 </plist>

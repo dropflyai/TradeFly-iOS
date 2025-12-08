@@ -33,16 +33,15 @@ platform :ios do
     build_number = get_build_number(xcodeproj: "TradeFly.xcodeproj")
     UI.message("Current build number: #{build_number}")
 
-    # Use manual signing for GitHub Actions
+    # Ensure automatic signing is enabled - let Xcode handle everything
     update_code_signing_settings(
-      use_automatic_signing: false,
+      use_automatic_signing: true,
       path: "TradeFly.xcodeproj",
       team_id: "G46B7YC46C",
-      bundle_identifier: "com.tradefly.TradeFly",
-      profile_name: "TradeFly App Store"
+      bundle_identifier: "com.tradefly.TradeFly"
     )
 
-    # Build and archive with manual signing
+    # Build and archive with automatic signing
     gym(
       scheme: "TradeFly",
       configuration: "Release",
@@ -55,10 +54,7 @@ platform :ios do
         method: "app-store",
         teamID: "G46B7YC46C",
         uploadSymbols: true,
-        uploadBitcode: false,
-        provisioningProfiles: {
-          "com.tradefly.TradeFly" => "TradeFly App Store"
-        }
+        uploadBitcode: false
       }
     )
 

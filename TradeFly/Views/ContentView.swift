@@ -45,17 +45,23 @@ struct MainTabView: View {
                 }
                 .tag(AppState.Tab.markets)
 
-            CryptoView()
+            LearnView()
                 .tabItem {
-                    Label("Crypto", systemImage: "bitcoinsign.circle.fill")
+                    Label("Learn", systemImage: "book.fill")
                 }
-                .tag(AppState.Tab.crypto)
+                .tag(AppState.Tab.learn)
 
-            MoreView()
+            TradesView()
                 .tabItem {
-                    Label("More", systemImage: "ellipsis.circle.fill")
+                    Label("Trades", systemImage: "list.bullet.clipboard")
                 }
-                .tag(AppState.Tab.more)
+                .tag(AppState.Tab.trades)
+
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
+                .tag(AppState.Tab.settings)
         }
         .accentColor(.blue)
     }
