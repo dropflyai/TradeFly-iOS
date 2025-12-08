@@ -77,9 +77,23 @@ struct MarketsView: View {
 
     func loadPrices() async {
         isLoadingPrices = true
-        // TODO: Implement live price fetching
-        // For now, show empty state
-        livePrices = []
+
+        // Get current ticker symbols based on category
+        let tickers = currentTickers
+
+        // Fetch live prices from Polygon.io via PriceService
+        let prices = await PriceService.shared.fetchPrices(for: tickers)
+
+        // Map TickerPrice to TickerInfo
+        livePrices = prices.map { tickerPrice in
+            TickerInfo(
+                ticker: tickerPrice.ticker,
+                name: tickerPrice.name,
+                lastPrice: tickerPrice.lastPrice,
+                changePercent: tickerPrice.changePercent
+            )
+        }
+
         isLoadingPrices = false
     }
 

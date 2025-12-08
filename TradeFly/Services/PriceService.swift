@@ -2,7 +2,7 @@
 //  PriceService.swift
 //  TradeFly AI
 //
-//  Fetches LIVE stock and crypto prices from Yahoo Finance API
+//  Fetches LIVE stock and crypto prices from Polygon.io API
 
 import Foundation
 import Combine
@@ -16,14 +16,15 @@ class PriceService: ObservableObject {
 
     private var updateTimer: AnyCancellable?
     private let session = URLSession.shared
+    private let apiKey = SupabaseConfig.polygonAPIKey
 
     private init() {
         startAutoUpdate()
     }
 
-    // Auto-refresh prices every 15 seconds
+    // Auto-refresh prices every 5 seconds for real-time updates
     func startAutoUpdate() {
-        updateTimer = Timer.publish(every: 15, on: .main, in: .common)
+        updateTimer = Timer.publish(every: 5, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 Task {
@@ -38,9 +39,9 @@ class PriceService: ObservableObject {
 
         var results: [TickerPrice] = []
 
-        // Fetch in batches of 10 to avoid overwhelming the API
-        let batches = stride(from: 0, to: tickers.count, by: 10).map {
-            Array(tickers[$0..<min($0 + 10, tickers.count)])
+        // Fetch in batches of 5 to avoid rate limiting
+        let batches = stride(from: 0, to: tickers.count, by: 5).map {
+            Array(tickers[$0..<min($0 + 5, tickers.count)])
         }
 
         for batch in batches {
@@ -63,42 +64,48 @@ class PriceService: ObservableObject {
         return results
     }
 
-    // Fetch single ticker price from Yahoo Finance
+    // Fetch single ticker price from Polygon.io
     private func fetchSinglePrice(ticker: String) async -> TickerPrice? {
-        // Use Yahoo Finance quote API
-        let urlString = "https://query1.finance.yahoo.com/v8/finance/chart/\(ticker)?interval=1d&range=1d"
+        // Use Polygon.io Previous Close endpoint for reliable data
+        // This gives us the most recent trading day's data
+        let urlString = "https://api.polygon.io/v2/aggs/ticker/\(ticker)/prev?adjusted=true&apiKey=\(apiKey)"
 
         guard let url = URL(string: urlString) else { return nil }
 
         do {
-            let (data, _) = try await session.data(from: url)
-            let response = try JSONDecoder().decode(YahooFinanceResponse.self, from: data)
+            let (data, response) = try await session.data(from: url)
 
-            guard let result = response.chart.result.first,
-                  let quote = result.indicators.quote.first else {
-                return nil
+            // Check for HTTP errors
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 401 {
+                    print("❌ Polygon API Key invalid or missing. Please set SupabaseConfig.polygonAPIKey")
+                    return cachedPrices[ticker]
+                } else if httpResponse.statusCode == 429 {
+                    print("⚠️ Polygon API rate limit exceeded. Consider upgrading your plan.")
+                    return cachedPrices[ticker]
+                } else if httpResponse.statusCode != 200 {
+                    print("⚠️ Polygon API returned status \(httpResponse.statusCode) for \(ticker)")
+                    return cachedPrices[ticker]
+                }
             }
 
-            // Get current price - try close first, then open
-            guard let currentPrice = quote.close?.compactMap({ $0 }).last ?? quote.open?.compactMap({ $0 }).last else {
-                return nil
+            let polygonResponse = try JSONDecoder().decode(PolygonPrevCloseResponse.self, from: data)
+
+            guard let result = polygonResponse.results.first else {
+                print("No data returned for \(ticker)")
+                return cachedPrices[ticker]
             }
 
-            guard let previousClose = result.meta.previousClose else {
-                return nil
-            }
-
-            let change = currentPrice - previousClose
-            let changePercent = (change / previousClose) * 100
-            let volume = quote.volume?.compactMap({ $0 }).last ?? 0
+            let change = result.c - result.o
+            let changePercent = (change / result.o) * 100
 
             return TickerPrice(
                 ticker: ticker,
-                name: result.meta.longName ?? ticker,
-                lastPrice: currentPrice,
+                name: ticker, // Polygon doesn't provide company name in this endpoint
+                lastPrice: result.c,
                 change: change,
                 changePercent: changePercent,
-                volume: volume,
+                volume: result.v,
                 timestamp: Date()
             )
         } catch {
@@ -118,14 +125,44 @@ class PriceService: ObservableObject {
 
     // Get cached price or fetch new one
     func getPrice(for ticker: String) async -> TickerPrice? {
-        // Return cached if less than 30 seconds old
+        // Return cached if less than 10 seconds old (for real-time feel)
         if let cached = cachedPrices[ticker],
-           Date().timeIntervalSince(cached.timestamp) < 30 {
+           Date().timeIntervalSince(cached.timestamp) < 10 {
             return cached
         }
 
         // Fetch fresh price
         return await fetchSinglePrice(ticker: ticker)
+    }
+
+    // Get real-time quote (for paid Polygon plans)
+    func getRealTimeQuote(for ticker: String) async -> TickerPrice? {
+        let urlString = "https://api.polygon.io/v2/last/trade/\(ticker)?apiKey=\(apiKey)"
+
+        guard let url = URL(string: urlString) else { return nil }
+
+        do {
+            let (data, _) = try await session.data(from: url)
+            let response = try JSONDecoder().decode(PolygonLastTradeResponse.self, from: data)
+
+            // Calculate change from cached or fetch previous close
+            let previousPrice = cachedPrices[ticker]?.lastPrice ?? response.results.p
+            let change = response.results.p - previousPrice
+            let changePercent = (change / previousPrice) * 100
+
+            return TickerPrice(
+                ticker: ticker,
+                name: ticker,
+                lastPrice: response.results.p,
+                change: change,
+                changePercent: changePercent,
+                volume: response.results.s,
+                timestamp: Date()
+            )
+        } catch {
+            print("Real-time quote failed for \(ticker), falling back to prev close: \(error)")
+            return await fetchSinglePrice(ticker: ticker)
+        }
     }
 }
 
@@ -141,39 +178,39 @@ struct TickerPrice: Codable {
     let timestamp: Date
 }
 
-// MARK: - Yahoo Finance API Response Models
+// MARK: - Polygon.io API Response Models
 
-struct YahooFinanceResponse: Codable {
-    let chart: ChartResponse
+struct PolygonPrevCloseResponse: Codable {
+    let status: String
+    let resultsCount: Int?
+    let results: [PolygonBar]
+
+    enum CodingKeys: String, CodingKey {
+        case status
+        case resultsCount
+        case results
+    }
 }
 
-struct ChartResponse: Codable {
-    let result: [ChartResult]
-    let error: String?
+struct PolygonBar: Codable {
+    let v: Int        // Volume
+    let vw: Double?   // Volume weighted average price
+    let o: Double     // Open
+    let c: Double     // Close
+    let h: Double     // High
+    let l: Double     // Low
+    let t: Int        // Timestamp (milliseconds) - always provided
+    let n: Int?       // Number of transactions
 }
 
-struct ChartResult: Codable {
-    let meta: ChartMeta
-    let timestamp: [Int]?
-    let indicators: ChartIndicators
+struct PolygonLastTradeResponse: Codable {
+    let status: String
+    let results: PolygonTrade
 }
 
-struct ChartMeta: Codable {
-    let currency: String?
-    let symbol: String
-    let regularMarketPrice: Double?
-    let previousClose: Double?
-    let longName: String?
-}
-
-struct ChartIndicators: Codable {
-    let quote: [QuoteData]
-}
-
-struct QuoteData: Codable {
-    let open: [Double?]?
-    let high: [Double?]?
-    let low: [Double?]?
-    let close: [Double?]?
-    let volume: [Int?]?
+struct PolygonTrade: Codable {
+    let p: Double     // Price
+    let s: Int        // Size (volume)
+    let t: Int?       // Timestamp
+    let x: Int?       // Exchange ID
 }

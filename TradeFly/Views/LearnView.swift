@@ -38,7 +38,20 @@ struct LearnView: View {
             .sheet(item: $selectedModule) { module in
                 LessonDetailView(module: module)
             }
+            .onAppear {
+                loadModules()
+            }
         }
+    }
+
+    private func loadModules() {
+        // Use preview samples for now - can be replaced with Supabase fetch later
+        #if DEBUG
+        modules = LearningModule.previewSamples
+        #else
+        // TODO: Fetch from Supabase in production
+        modules = LearningModule.previewSamples
+        #endif
     }
 }
 
@@ -51,7 +64,8 @@ struct ProgressOverviewCard: View {
     }
 
     var progress: Double {
-        Double(completedCount) / Double(modules.count)
+        guard modules.count > 0 else { return 0 }
+        return Double(completedCount) / Double(modules.count)
     }
 
     var body: some View {

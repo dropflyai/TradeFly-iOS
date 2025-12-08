@@ -205,9 +205,56 @@ struct AdvancedChartView: View {
     }
 
     func fetchCandleData(ticker: String, timeframe: ChartTimeframe) async throws -> [CandleData] {
-        // TODO: Replace with actual API call to backend
-        // NO SAMPLE DATA - Fetch from API
-        return [] // Return empty until live data is fetched
+        // Map timeframe to Polygon API parameters
+        let (multiplier, timespan, daysBack) = getPolygonParams(for: timeframe)
+
+        // Calculate date range
+        let toDate = Date()
+        let fromDate = Calendar.current.date(byAdding: .day, value: -daysBack, to: toDate)!
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let fromStr = dateFormatter.string(from: fromDate)
+        let toStr = dateFormatter.string(from: toDate)
+
+        // Build Polygon API URL
+        let apiKey = SupabaseConfig.polygonAPIKey
+        let urlString = "https://api.polygon.io/v2/aggs/ticker/\(ticker)/range/\(multiplier)/\(timespan)/\(fromStr)/\(toStr)?adjusted=true&sort=asc&limit=5000&apiKey=\(apiKey)"
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        }
+
+        // Fetch data
+        let (data, _) = try await URLSession.shared.data(from: url)
+
+        // Decode Polygon response
+        let response = try JSONDecoder().decode(PolygonBarsResponse.self, from: data)
+
+        // Convert to CandleData
+        return response.results.map { bar in
+            CandleData(
+                timestamp: Date(timeIntervalSince1970: TimeInterval(bar.t / 1000)),
+                open: bar.o,
+                high: bar.h,
+                low: bar.l,
+                close: bar.c,
+                volume: bar.v
+            )
+        }
+    }
+
+    func getPolygonParams(for timeframe: ChartTimeframe) -> (multiplier: Int, timespan: String, daysBack: Int) {
+        switch timeframe {
+        case .oneMin:    return (1, "minute", 1)
+        case .fiveMin:   return (5, "minute", 2)
+        case .fifteenMin: return (15, "minute", 5)
+        case .thirtyMin: return (30, "minute", 7)
+        case .oneHour:   return (1, "hour", 14)
+        case .fourHour:  return (4, "hour", 30)
+        case .oneDay:    return (1, "day", 180)
+        case .oneWeek:   return (1, "week", 730)
+        }
     }
 
     func calculateIndicators(for data: [CandleData]) -> TechnicalIndicators {
@@ -715,6 +762,15 @@ struct IndicatorToggle: View {
         }
     }
 }
+
+// MARK: - Polygon API Response Models
+
+struct PolygonBarsResponse: Codable {
+    let status: String
+    let results: [PolygonBar]
+}
+
+// Note: PolygonBar is defined in PriceService.swift and reused here
 
 #Preview {
     NavigationView {

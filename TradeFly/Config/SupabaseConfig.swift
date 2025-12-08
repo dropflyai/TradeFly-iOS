@@ -17,6 +17,11 @@ struct SupabaseConfig {
     // Backend API URL (Python FastAPI server)
     static let backendURL = "http://localhost:8000"
 
+    // Polygon.io API Key - Get from https://polygon.io
+    // Free tier: Delayed data (15 minutes)
+    // Paid tier: Real-time data
+    static let polygonAPIKey = "ZNusnBp5oAOLDp0xjpeF4TwM46mDGIQP"
+
     // Example:
     // static let url = "https://abcdefghijklmnop.supabase.co"
     // static let anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
